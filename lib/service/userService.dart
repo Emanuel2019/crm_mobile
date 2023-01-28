@@ -6,7 +6,8 @@ import 'package:http/http.dart' as http;
 class userService {
   static const ADD_URL = 'http://localhost/school/signup.php';
   static const VIEW_URL = 'http://localhost/school/view.php';
-    static const UPDATE_URL = 'http://localhost/school/update.php';
+  static const UPDATE_URL = 'http://localhost/school/update.php';
+   static const DELETE_URL = 'http://localhost/school/delete.php';
   Future<String> addUser(UserModel userModel) async {
     final response =
         await http.post(Uri.parse(ADD_URL), body: userModel.toJsonAdd());
@@ -33,9 +34,21 @@ class userService {
       return list;
     }
   }
+
   Future<String> updateUser(UserModel userModel) async {
     final response =
         await http.post(Uri.parse(UPDATE_URL), body: userModel.toJsonUpdate());
+    if (response.statusCode == 200) {
+      print(response.body);
+      return response.body;
+    } else {
+      return "error";
+    }
+  }
+
+  Future<String> deleteUser(UserModel userModel) async {
+    final response =
+        await http.post(Uri.parse(DELETE_URL), body: userModel.toJsonUpdate());
     if (response.statusCode == 200) {
       print(response.body);
       return response.body;

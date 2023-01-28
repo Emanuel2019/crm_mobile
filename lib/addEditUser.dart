@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:crm_mobile/view_data.dart';
 import 'package:flutter/material.dart';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +10,8 @@ import 'package:crm_mobile/service/userService.dart';
 class AddEditUser extends StatefulWidget {
   final UserModel userModel;
   final int index;
-  AddEditUser({required this.userModel, required this.index});
+  // ignore: use_key_in_widget_constructors
+ const AddEditUser({ required this.userModel, required this.index});
   @override
   State<AddEditUser> createState() => _AddEditUserState();
 }
@@ -35,7 +37,21 @@ class _AddEditUserState extends State<AddEditUser> {
   }
 
   add(UserModel userModel) async {
-    await userService().addUser(userModel);
+    try {
+      await userService().addUser(userModel).then((success) {
+        Toast.show("Utilizador registado com sucesso",
+            duration: Toast.lengthShort, gravity: Toast.center);
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  update(UserModel userModel) async {
+    await userService().updateUser(userModel).then((success) {
+      Toast.show("Utilizador actualizado com sucesso",
+          duration: Toast.lengthShort, gravity: Toast.center);
+    });
   }
 
   Future<void> InsertRecord() async {
@@ -67,6 +83,7 @@ class _AddEditUserState extends State<AddEditUser> {
   void initState() {
     super.initState();
     if (widget.index != null) {
+      editMode = true;
       name.text = widget.userModel.name;
       email.text = widget.userModel.email;
       password.text = widget.userModel.password;
@@ -81,7 +98,7 @@ class _AddEditUserState extends State<AddEditUser> {
   Widget build(BuildContext context) {
     ToastContext().init(context);
     return Scaffold(
-      appBar: AppBar(title: Text('Registar')),
+      appBar: AppBar(title: Text(editMode ? 'Editar' : 'Registar')),
       body: Column(children: <Widget>[
         SizedBox(
           height: 20,
@@ -141,30 +158,32 @@ class _AddEditUserState extends State<AddEditUser> {
         SizedBox(
           height: 10,
         ),
-        DropdownButton<String>(
-          isExpanded: true,
-          iconSize: 30.0,
-          style: TextStyle(color: Colors.blue),
-          items: <String>['Masculino', 'Femenino'].map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (value) {},
+        // DropdownButton<String>(
+        //   isExpanded: true,
+        //   iconSize: 30.0,
+        //   style: TextStyle(color: Colors.blue),
+        //   items: <String>['Masculino', 'Femenino'].map((String value) {
+        //     return DropdownMenuItem<String>(
+        //       value: value,
+        //       child: Text(value),
+        //     );
+        //   }).toList(),
+        //   onChanged: (value) {},
+        // ),
+        TextField(
+          controller: gender,
+          decoration: InputDecoration(
+              hintText: 'Escreva o sexo',
+              contentPadding: EdgeInsets.all(10.0)),
         ),
         SizedBox(
           height: 10,
         ),
         ElevatedButton(
             onPressed: () {
-              if (name.text.isEmpty) {
-                Toast.show("O campo não dever estar vázio",
-                    duration: Toast.lengthShort);
-              } else {
-                //InsertRecord();
+              if (editMode) {
                 UserModel userModel = UserModel(
-                    id: id.text,
+                    id: widget.userModel.id,
                     name: name.text,
                     email: email.text,
                     password: password.text,
@@ -172,17 +191,36 @@ class _AddEditUserState extends State<AddEditUser> {
                     city: city.text,
                     country: country.text,
                     gender: gender.text);
-                add(userModel);
-                Toast.show("Utilizador registado com sucesso",
-                    duration: Toast.lengthShort);
-                clearRecord();
+                update(userModel);
+              } else {
+                if (name.text.isEmpty) {
+                  Toast.show("O campo não dever estar vázio",
+                      duration: Toast.lengthShort);
+                } else {
+                  //InsertRecord();
+                  UserModel userModel = UserModel(
+                      id: id.text,
+                      name: name.text,
+                      email: email.text,
+                      password: password.text,
+                      phone: phone.text,
+                      city: city.text,
+                      country: country.text,
+                      gender: gender.text);
+                  add(userModel);
+                  Toast.show("Utilizador registado com sucesso",
+                      duration: Toast.lengthShort);
+                  clearRecord();
+                }
               }
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => ViewData()));
             },
             child: Container(
               height: 50,
               width: 394,
               alignment: Alignment.center,
-              child: Text("Gravar"),
+              child: Text(editMode ? "Guardar" : "Gravar"),
             )),
       ]),
     );

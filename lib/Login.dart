@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'view_data.dart';
+import 'package:crm_mobile/Login.dart';
 import 'package:http/http.dart' as http;
 
 class LoginWidget extends StatelessWidget {
@@ -24,55 +25,23 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   @override
-  String errormgs = "";
-  bool error = false;
-  bool showprogress = false;
-  String name = "";
-  String password = "";
-  var _name = TextEditingController();
-  var _password = TextEditingController();
-  starLogin() async {
-    String apiurl = "http://localhost/school/login.php";
-    print(name);
-    var response = await http
-        .post(Uri.parse(apiurl), body: {'name': name, 'password': password});
-    if (response.statusCode == 200) {
-      var jsondata = jsonDecode(response.body);
-      if (jsondata["error"]) {
-        setState(() {
-          showprogress = false;
-          error = true;
-          errormgs = jsondata["success"];
-        });
-      } else {
-        if (jsondata["success"]) {
-          setState(() {
-            error = false;
-            showprogress = false;
-          });
-          String id = jsondata["id"];
-          String name = jsondata["name"];
-          String email = jsondata["email"];
-          String phone = jsondata["phone"];
-          String city = jsondata["city"];
-          String country = jsondata["country"];
-          String gender = jsondata["gender"];
-        }
-      }
+  String apiUrl = "http://localhost/school/login.php";
+  String mgsError = "";
+
+  getApi(String email, String password) async {
+    final res = await http.post(Uri.parse(apiUrl),
+        body: {"email": _email.text, "password": _password.text});
+  
+    final data = json.decode(res.body);
+    if (data['success']!="false") { 
+     Navigator.push(context, MaterialPageRoute(builder: (_) => ViewData()));
+    } else {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => LoginWidget()));
     }
   }
 
-  void initState() {
-    name = "";
-    password = "";
-    errormgs = "";
-    error = false;
-    showprogress = false;
-
-    //_username.text = "defaulttext";
-    //_password.text = "defaultpassword";
-    super.initState();
-  }
+  var _email = TextEditingController();
+  var _password = TextEditingController();
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,6 +71,7 @@ class _LoginState extends State<Login> {
               //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
               padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
+                controller: _email,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Nome',
@@ -113,6 +83,7 @@ class _LoginState extends State<Login> {
                   left: 15.0, right: 15.0, top: 15, bottom: 0),
               //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
+                controller: _password,
                 obscureText: true,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(),
@@ -130,8 +101,9 @@ class _LoginState extends State<Login> {
                   color: Colors.blue, borderRadius: BorderRadius.circular(20)),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => ViewData()));
+                  // Navigator.push(
+                  //     context, MaterialPageRoute(builder: (_) => ViewData()));
+                  getApi(_email.text, _password.text);
                 },
                 child: Text(
                   'Login',
